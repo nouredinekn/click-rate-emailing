@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0c0c0c;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #121212;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden; /* Ensures shadow doesn't overflow */
+        }
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: left;
+            color: #fff;
+        }
+        table th {
+            background-color: #333;
+        }
+        table tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+        table tr:hover {
+            background-color: #2a2a2a;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4a4646;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #555;
+        }
+
+        /* Neon effect */
+        .button-container button.neon {
+            background-color: #222;
+            box-shadow: 0 0 4px rgba(138, 134, 134, 0.8);
+        }
+
+        .button-container button.neon:hover {
+            background-color: #444;
+            color: rgb(209, 213, 213);
+        }
+        .analytics {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #121212;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        .analytics h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .analytics .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .metric .label {
+            font-size: 16px;
+            color: #888;
+        }
+        .metric .value {
+            font-size: 18px;
+            color: #fff;
+        }
+        .metric .value.success {
+            color: #3fb34f; /* Green color for success */
+        }
+        .metric .value.warning {
+            color: #f0ad4e; /* Orange color for warning */
+        }
+        .metric .value.danger {
+            color: #d9534f; /* Red color for danger */
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard - URL: {{ new_url }}</h1>
+        <div class="analytics">
+            <h2>Analytics</h2>
+            <div class="metric">
+                <div class="label">Total Visits</div>
+                <div class="value success " style="font-weight: bolder; font-size: larger;" id="total-visits">{{ visits|length }}</div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="toggle-table" class="neon">Hide Data</button>
+            <button id="sort-asc" class="neon">Sort by Time (Asc)</button>
+            <button id="sort-desc" class="neon">Sort by Time (Desc)</button>
+            <button id="country-stats" class="neon">Country Statistics</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>Email Open</th>
+                    <th>Country</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in visits %}
+                <tr>
+                    <td>{{ visit.url }}</td>
+                    <td>{{ visit.email }}</td>
+                    <td>{{ visit.country }}</td>
+                    <td>{{ visit.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="country-stats hidden">
+            <h2>Top 10 Countries by Visits</h2>
+            <ol id="top-countries"></ol>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            const toggleButton = document.getElementById('toggle-table');
+            const sortAscButton = document.getElementById('sort-asc');
+            const sortDescButton = document.getElementById('sort-desc');
+            const countryStatsButton = document.getElementById('country-stats');
+            const countryStatsContainer = document.querySelector('.country-stats');
+            const topCountriesList = document.getElementById('top-countries');
+
+            // Toggle table visibility
+            toggleButton.addEventListener('click', function() {
+                table.classList.toggle('hidden');
+                toggleButton.textContent = table.classList.contains('hidden') ? 'Show Data' : 'Hide Data';
+            });
+
+            // Sort table by timestamp in ascending order
+            sortAscButton.addEventListener('click', function() {
+                const rows = Array.from(table.rows).slice(1); // Skip header row
+                rows.sort((rowA, rowB) => {
+                    const timeA = new Date(rowA.cells[3].textContent).getTime();
+                    const timeB = new Date(rowB.cells[3].textContent).getTime();
+                    return timeA - timeB;
+                });
+                rows.forEach(row => table.appendChild(row));
+            });
+
+            // Sort table by timestamp in descending order
+            sortDescButton.addEventListener('click', function() {
+                const rows = Array.from(table.rows).slice(1); // Skip header row
+                rows.sort((rowA, rowB) => {
+                    const timeA = new Date(rowA.cells[3].textContent).getTime();
+                    const timeB = new Date(rowB.cells[3].textContent).getTime();
+                    return timeB - timeA;
+                });
+                rows.forEach(row => table.appendChild(row));
+            });
+
+            // Display country statistics
+            countryStatsButton.addEventListener('click', function() {
+                const countryCounts = {};
+
+                // Count visits per country
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    const country = row.querySelector('td:nth-child(3)').textContent;
+                    if (country in countryCounts) {
+                        countryCounts[country]++;
+                    } else {
+                        countryCounts[country] = 1;
+                    }
+                });
+
+                // Sort countries by visit count
+                const sortedCountries = Object.keys(countryCounts).sort((a, b) => countryCounts[b] - countryCounts[a]).slice(0, 10);
+
+                // Update top countries list
+                topCountriesList.innerHTML = '';
+                sortedCountries.forEach(country => {
+                    const li = document.createElement('li');
+                    li.textContent = `${country}: ${countryCounts[country]} visits`;
+                    topCountriesList.appendChild(li);
+                });
+
+                // Show statistics
+                countryStatsContainer.classList.remove('hidden');
+            });
+        });
+    </script>
+
+</body>
+</html>
